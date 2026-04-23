@@ -30,114 +30,126 @@ export default function ControlPanel({
   }
 
   return (
-    <div className="cyber-panel p-4 flex flex-wrap gap-4 items-center">
-      {/* Category */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500 font-mono">CATEGORY</span>
-        <div className="flex gap-1">
-          {['sorting', 'searching'].map(cat => (
-            <button
-              key={cat}
-              onClick={() => handleCategoryChange(cat)}
-              className={`cyber-btn text-xs ${category === cat ? 'active' : ''}`}
-              disabled={isRunning}
-            >
-              {cat.toUpperCase()}
-            </button>
-          ))}
+    <div className="cyber-panel p-4 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-3 items-end">
+        {/* Category */}
+        <div className="w-full sm:w-auto flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+          <span className="text-xs text-slate-500 font-mono">CATEGORY</span>
+          <div className="flex gap-1">
+            {['sorting', 'searching'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => handleCategoryChange(cat)}
+                className={`cyber-btn text-xs ${category === cat ? 'active' : ''}`}
+                disabled={isRunning}
+              >
+                {cat.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Algorithm */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500 font-mono">ALGO</span>
-        <div className="flex gap-1 flex-wrap">
-          {Object.entries(algos).map(([key, val]) => (
-            <button
-              key={key}
-              onClick={() => setAlgorithm(key)}
-              className={`cyber-btn text-xs ${algorithm === key ? 'active' : ''}`}
-              disabled={isRunning}
-            >
-              {val.name.replace(' Sort', '').replace(' Search', '').toUpperCase()}
-            </button>
-          ))}
+        {/* Algorithm */}
+        <div className="w-full lg:w-auto flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+          <span className="text-xs text-slate-500 font-mono">ALGO</span>
+          <div className="flex gap-1 flex-wrap">
+            {Object.entries(algos).map(([key, val]) => (
+              <button
+                key={key}
+                onClick={() => setAlgorithm(key)}
+                className={`cyber-btn text-xs ${algorithm === key ? 'active' : ''}`}
+                disabled={isRunning}
+              >
+                {val.name.replace(' Sort', '').replace(' Search', '').toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Search target */}
-      {category === 'searching' && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-mono">TARGET</span>
+        {/* Search target */}
+        {category === 'searching' && (
+          <div className="w-full sm:w-auto flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+            <span className="text-xs text-slate-500 font-mono">TARGET</span>
+            <input
+              type="number"
+              value={searchTarget}
+              onChange={e => setSearchTarget(Number(e.target.value))}
+              className="w-16 bg-cyber-bg border border-cyber-border text-cyber-cyan font-mono text-xs px-2 py-1 outline-none"
+              disabled={isRunning}
+            />
+          </div>
+        )}
+
+        {/* Size */}
+        <div className="w-full sm:w-auto flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+          <span className="text-xs text-slate-500 font-mono">SIZE: {arraySize}</span>
           <input
-            type="number"
-            value={searchTarget}
-            onChange={e => setSearchTarget(Number(e.target.value))}
-            className="w-16 bg-cyber-bg border border-cyber-border text-cyber-cyan font-mono text-xs px-2 py-1 outline-none"
+            type="range" min={5} max={50} value={arraySize}
+            onChange={e => { setArraySize(+e.target.value); onGenerate(+e.target.value) }}
+            className="w-24"
             disabled={isRunning}
           />
         </div>
-      )}
 
-      {/* Size */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500 font-mono">SIZE: {arraySize}</span>
-        <input
-          type="range" min={5} max={50} value={arraySize}
-          onChange={e => { setArraySize(+e.target.value); onGenerate(+e.target.value) }}
-          className="w-24"
-          disabled={isRunning}
-        />
-      </div>
-
-      {/* Speed */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500 font-mono">SPEED</span>
-        <input
-          type="range" min={50} max={1000} value={1050 - speed}
-          onChange={e => setSpeed(1050 - e.target.value)}
-          className="w-24"
-        />
-        <span className="text-xs text-cyber-cyan font-mono">{speed < 200 ? 'FAST' : speed < 600 ? 'MED' : 'SLOW'}</span>
+        {/* Speed */}
+        <div className="w-full sm:w-auto flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+          <span className="text-xs text-slate-500 font-mono">SPEED</span>
+          <input
+            type="range" min={50} max={1000} value={1050 - speed}
+            onChange={e => setSpeed(1050 - e.target.value)}
+            className="w-24"
+          />
+          <span className="text-xs text-cyber-cyan font-mono">{speed < 200 ? 'FAST' : speed < 600 ? 'MED' : 'SLOW'}</span>
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 ml-auto">
+      <div className="flex flex-wrap gap-2 justify-start border-t border-white/10 pt-3">
         <button
           onClick={() => setStepMode(!stepMode)}
-          className={`cyber-btn ${stepMode ? 'active' : ''}`}
+          className={`cyber-btn control-btn text-xs sm:text-sm ${stepMode ? 'active' : ''}`}
           disabled={isRunning}
         >
-          STEP MODE {stepMode ? 'ON' : 'OFF'}
+          <span className="control-btn-icon">{stepMode ? '🧩' : '🧠'}</span>
+          <span>{stepMode ? 'STEP MODE ON' : 'STEP MODE OFF'}</span>
         </button>
         <button
           onClick={() => onGenerate()}
-          className="cyber-btn cyber-btn-pink"
+          className="cyber-btn cyber-btn-pink control-btn text-xs sm:text-sm"
           disabled={isRunning}
         >
-          GENERATE
+          <span className="control-btn-icon">🎲</span>
+          <span>GENERATE</span>
         </button>
         {!isRunning ? (
-          <button onClick={onStart} className="cyber-btn cyber-btn-green">
-            ▶ START
+          <button onClick={onStart} className="cyber-btn cyber-btn-green control-btn text-xs sm:text-sm">
+            <span className="control-btn-icon">▶</span>
+            <span>START</span>
           </button>
         ) : (
-          <button onClick={onPause} className="cyber-btn cyber-btn-green">
-            {isPaused ? '▶ RESUME' : '⏸ PAUSE'}
+          <button
+            onClick={onPause}
+            className={`cyber-btn cyber-btn-green control-btn text-xs sm:text-sm ${!isPaused ? 'active-running' : ''}`}
+          >
+            <span className="control-btn-icon">{isPaused ? '▶' : '⏸'}</span>
+            <span>{isPaused ? 'RESUME' : 'RUNNING'}</span>
           </button>
         )}
-        <button onClick={onReset} className="cyber-btn">
-          ⟳ RESET
+        <button onClick={onReset} className="cyber-btn control-btn text-xs sm:text-sm" disabled={isRunning}>
+          <span className="control-btn-icon">↺</span>
+          <span>RESET</span>
         </button>
-        <button onClick={onRestartCurrent} className="cyber-btn" disabled={isRunning}>
-          ↻ RESTART CURRENT
+        <button onClick={onRestartCurrent} className="cyber-btn control-btn text-xs sm:text-sm" disabled={isRunning}>
+          <span className="control-btn-icon">⟲</span>
+          <span>RESTART CURRENT</span>
         </button>
         <button
           onClick={onNextStep}
-          className="cyber-btn cyber-btn-green"
-          disabled={!isRunning || !stepMode || isPaused}
+          className="cyber-btn cyber-btn-green control-btn text-xs sm:text-sm"
+          disabled={!isRunning || !stepMode}
         >
-          ⏭ NEXT STEP
+          <span className="control-btn-icon">⏭</span>
+          <span>NEXT STEP</span>
         </button>
       </div>
     </div>

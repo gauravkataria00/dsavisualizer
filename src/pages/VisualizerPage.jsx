@@ -32,6 +32,7 @@ export default function VisualizerPage() {
     addLog, incrementComparisons, incrementSwaps,
     setIsRunning, setIsPaused, reset, generateArray,
     setExplanation,
+    explanation,
     isRunning, isPaused
   } = store
 
@@ -41,9 +42,26 @@ export default function VisualizerPage() {
   const stepModeRef = useRef(false)
   const [searchTarget, setSearchTarget] = useState(50)
   const [stepMode, setStepMode] = useState(false)
+  const [showCodePanel, setShowCodePanel] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const [showControls, setShowControls] = useState(true)
 
   useEffect(() => {
     generateArray()
+  }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const applyResponsiveState = () => {
+      const mobile = media.matches
+      setIsMobile(mobile)
+      setShowControls(!mobile)
+      setShowCodePanel(!mobile)
+    }
+
+    applyResponsiveState()
+    media.addEventListener('change', applyResponsiveState)
+    return () => media.removeEventListener('change', applyResponsiveState)
   }, [])
 
   useEffect(() => {
@@ -249,64 +267,94 @@ export default function VisualizerPage() {
   return (
     <div className="min-h-screen grid-bg scan-overlay flex flex-col" style={{ background: 'var(--cyber-bg)' }}>
       {/* Header */}
-      <header className="border-b border-cyber-border px-6 py-3 flex items-center justify-between">
+      <header className="border-b border-cyber-border px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl font-bold text-cyber-cyan glow-cyan tracking-widest">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-cyber-cyan glow-cyan tracking-widest">
             DSA VISUALIZER
           </h1>
-          <p className="text-xs text-slate-500 font-mono mt-0.5">3D Algorithm Explorer v2.0</p>
+          <p className="text-sm text-slate-300/80 font-mono mt-1">3D Algorithm Explorer v2.0</p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <div className="text-center">
-            <div className="font-display text-lg font-bold text-cyber-pink">
+            <div className="font-display text-xl font-bold text-cyber-pink">
               {algoData?.name || '—'}
             </div>
-            <div className="text-xs text-slate-500 font-mono">ACTIVE ALGORITHM</div>
+            <div className="text-xs text-slate-300/70 font-mono">ACTIVE ALGORITHM</div>
           </div>
+
+          <button
+            onClick={() => setShowCodePanel(!showCodePanel)}
+            className={`cyber-btn text-xs ${showCodePanel ? 'active gradient-active' : ''}`}
+          >
+            {showCodePanel ? 'HIDE CODE' : 'SHOW CODE'}
+          </button>
 
           <div className="flex gap-1">
             <StatusDot color="cyan" active={isRunning && !useStore.getState().isPaused} label="RUNNING" />
             <StatusDot color="yellow" active={useStore.getState().isPaused} label="PAUSED" />
             <StatusDot color="green" active={!isRunning} label="IDLE" />
           </div>
+
+          <button
+            onClick={() => setShowControls(!showControls)}
+            className="cyber-btn text-xs md:hidden"
+          >
+            {showControls ? 'HIDE CONTROLS' : 'SHOW CONTROLS'}
+          </button>
         </div>
       </header>
 
       {/* Controls */}
-      <div className="px-4 py-2 border-b border-cyber-border">
-        <ControlPanel
-          onStart={handleStart}
-          onPause={handlePause}
-          onReset={handleReset}
-          onGenerate={handleGenerate}
-          onRestartCurrent={handleRestartCurrent}
-          onNextStep={handleNextStep}
-          stepMode={stepMode}
-          setStepMode={setStepMode}
-          searchTarget={searchTarget}
-          setSearchTarget={setSearchTarget}
-        />
-      </div>
+      {showControls && (
+        <div className="px-3 sm:px-4 py-2 border-b border-cyber-border">
+          <ControlPanel
+            onStart={handleStart}
+            onPause={handlePause}
+            onReset={handleReset}
+            onGenerate={handleGenerate}
+            onRestartCurrent={handleRestartCurrent}
+            onNextStep={handleNextStep}
+            stepMode={stepMode}
+            setStepMode={setStepMode}
+            searchTarget={searchTarget}
+            setSearchTarget={setSearchTarget}
+          />
+        </div>
+      )}
 
       {/* Main content */}
-      <div className="flex-1 flex gap-4 p-4 min-h-0">
-        {/* 3D Canvas */}
-        <div className="flex-1 cyber-panel overflow-hidden" style={{ minHeight: '400px' }}>
-          <div className="w-full h-full">
-            <BarVisualizer />
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-3 sm:p-4 min-h-0">
+        {/* Dominant visualization column */}
+        <div className="lg:w-[70%] w-full flex flex-col gap-4 min-h-0">
+          <div className="cyber-panel overflow-hidden" style={{ minHeight: isMobile ? '320px' : '420px' }}>
+            <div className="w-full h-full">
+              <BarVisualizer isMobile={isMobile} />
+            </div>
+          </div>
+
+          <div className="cyber-panel p-4 border-t border-cyber-border gradient-active">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse" />
+              <span className="font-display text-sm text-cyber-cyan tracking-widest">LIVE EXPLANATION</span>
+            </div>
+            <p className="text-sm text-slate-200/90 font-mono leading-relaxed min-h-12">
+              {explanation}
+            </p>
           </div>
         </div>
 
-        {/* Right sidebar */}
-        <div className="w-72 flex flex-col gap-4">
-          <div className="flex-1 min-h-0">
-            <CodePanel />
-          </div>
-          <div style={{ height: '200px' }}>
+        {/* Secondary column */}
+        <div className="lg:w-[30%] w-full flex flex-col gap-4 min-h-0">
+          {showCodePanel && (
+            <div className="min-h-0" style={{ maxHeight: '340px' }}>
+              <CodePanel />
+            </div>
+          )}
+          <div>
             <InfoPanel />
           </div>
-          <div style={{ height: '180px' }}>
+          <div style={{ minHeight: '170px' }}>
             <LogPanel />
           </div>
         </div>

@@ -1,14 +1,14 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Text, Environment } from '@react-three/drei'
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useStore } from '../../store'
 
-function Bar({ value, index, total, maxVal, state }) {
+function Bar({ value, index, total, maxVal, state, isMobile }) {
   const meshRef = useRef()
   const height = (value / maxVal) * 8 + 0.2
-  const width = Math.min(0.7, 12 / total)
-  const gap = width + 0.15
+  const width = isMobile ? Math.min(0.45, 7.4 / total) : Math.min(0.7, 12 / total)
+  const gap = width + (isMobile ? 0.08 : 0.15)
   const x = (index - total / 2) * gap
 
   const color = useMemo(() => {
@@ -18,7 +18,7 @@ function Bar({ value, index, total, maxVal, state }) {
     if (state === 'found') return new THREE.Color('#00f5ff')
     const t = value / maxVal
     return new THREE.Color().lerpColors(
-      new THREE.Color('#1e3a5f'),
+      new THREE.Color('#1a4fbf'),
       new THREE.Color('#00f5ff'),
       t
     )
@@ -26,13 +26,29 @@ function Bar({ value, index, total, maxVal, state }) {
 
   useFrame((_, delta) => {
     if (meshRef.current) {
-      meshRef.current.scale.y = THREE.MathUtils.lerp(meshRef.current.scale.y, height, delta * 8)
-      meshRef.current.material.color.lerp(color, delta * 6)
-      if (state === 'comparing' || state === 'swapping') {
-        meshRef.current.material.emissiveIntensity = 0.5 + Math.sin(Date.now() * 0.01) * 0.3
-      } else {
-        meshRef.current.material.emissiveIntensity = state === 'sorted' ? 0.3 : 0.1
-      }
+      const pulse = 1 + Math.sin(Date.now() * 0.012) * 0.04
+      const targetScaleXZ = state === 'comparing' ? pulse : state === 'swapping' ? 1.06 : 1
+      const targetGlow =
+        state === 'comparing'
+          ? 0.95
+          : state === 'swapping'
+            ? 0.85
+            : state === 'found'
+              ? 0.8
+              : state === 'sorted'
+                ? 0.35
+                : 0.14
+
+      meshRef.current.scale.y = THREE.MathUtils.lerp(meshRef.current.scale.y, height, delta * 6)
+      meshRef.current.scale.x = THREE.MathUtils.lerp(meshRef.current.scale.x, targetScaleXZ, delta * 8)
+      meshRef.current.scale.z = THREE.MathUtils.lerp(meshRef.current.scale.z, targetScaleXZ, delta * 8)
+      meshRef.current.material.color.lerp(color, delta * 5)
+      meshRef.current.material.emissive.lerp(color, delta * 5)
+      meshRef.current.material.emissiveIntensity = THREE.MathUtils.lerp(
+        meshRef.current.material.emissiveIntensity,
+        targetGlow,
+        delta * 7
+      )
     }
   })
 
@@ -43,7 +59,7 @@ function Bar({ value, index, total, maxVal, state }) {
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.1}
+          emissiveIntensity={0.14}
           roughness={0.2}
           metalness={0.8}
         />
@@ -85,8 +101,17 @@ function AxisLabel() {
   )
 }
 
-export default function BarVisualizer() {
+export default function BarVisualizer({ isMobile: forceMobile = false }) {
   const { array, comparingIndices, swappingIndices, sortedIndices, foundIndex } = useStore()
+  const [isMobile, setIsMobile] = useState(forceMobile)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const updateMobile = () => setIsMobile(forceMobile || media.matches)
+    updateMobile()
+    media.addEventListener('change', updateMobile)
+    return () => media.removeEventListener('change', updateMobile)
+  }, [forceMobile])
 
   if (!array.length) return null
 
@@ -102,7 +127,7 @@ export default function BarVisualizer() {
 
   return (
     <Canvas
-      camera={{ position: [0, 5, 18], fov: 55 }}
+      camera={{ position: isMobile ? [0, 4.2, 16] : [0, 5, 18], fov: isMobile ? 60 : 55 }}
       style={{ background: 'transparent' }}
     >
       <ambientLight intensity={0.3} />
@@ -122,6 +147,7 @@ export default function BarVisualizer() {
           total={array.length}
           maxVal={maxVal}
           state={getState(i)}
+          isMobile={isMobile}
         />
       ))}
 

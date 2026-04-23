@@ -13,12 +13,12 @@ export default function LogPanel() {
     <div className="cyber-panel p-3 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-2 h-2 rounded-full bg-cyber-green animate-pulse" />
-        <span className="font-display text-xs text-cyber-green tracking-widest">LOG</span>
+        <span className="font-display text-sm text-cyber-green tracking-widest">LOG</span>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-0.5">
         {logs.length === 0 && (
-          <p className="text-xs text-slate-600 font-mono italic p-2">
+          <p className="text-sm text-slate-300/70 font-mono italic p-2">
             &gt; Awaiting execution...
           </p>
         )}

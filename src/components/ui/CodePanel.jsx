@@ -11,7 +11,7 @@ export default function CodePanel() {
     <div className="cyber-panel p-4 h-full">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-2 h-2 rounded-full bg-cyber-cyan animate-pulse" />
-        <span className="font-display text-xs text-cyber-cyan tracking-widest">CODE</span>
+        <span className="font-display text-sm text-cyber-cyan tracking-widest">CODE</span>
       </div>
       
       <div className="code-display">
@@ -27,7 +27,7 @@ export default function CodePanel() {
       </div>
 
       <div className="mt-4 pt-3 border-t border-cyber-border">
-        <p className="text-xs text-slate-400 font-body leading-relaxed">
+        <p className="text-sm text-slate-300/80 font-body leading-relaxed">
           {algoData.description}
         </p>
       </div>
